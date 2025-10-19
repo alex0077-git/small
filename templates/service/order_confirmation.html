@@ -1,0 +1,175 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+{% load custom_filters %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Order Confirmation</h1>
+
+    <!-- Display vehicle image and details -->
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-md-3">
+                <img src="{{ vehicle.vehicle_model.image.url }}" class="img-fluid rounded-start" alt="Vehicle Image" style="width: 100%; height: auto; object-fit: cover;">
+            </div>
+            <div class="col-md-9">
+                <div class="card-body">
+                    <h3 class="card-title">{{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h3>
+                    <p class="card-text"><strong>Registration Number:</strong> {{ vehicle.registration_number }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display selected service types -->
+    <h4 class="mb-3">Selected Services</h4>
+    <ul class="list-group mb-4">
+        {% for item in cart_items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="Service Image" style="width: 80px; height: 80px; object-fit: cover; margin-right: 15px;">
+                <div>
+                    <h5>{{ item.service_type.name }}</h5>
+                    <p class="mb-0"><strong>Price:</strong> ₹{{ item.service_type.service_prices.first.price }}</p>
+                    <p class="mb-0"><strong>Time:</strong> {{ item.service_type.service_time }} Hrs</p>
+                    <!-- Display cart date -->
+                    <p class="mb-0"><strong>Added to Cart:</strong> {{ item.cart_date|date:"d M Y, H:i A" }}</p>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Customer Details</h4>
+            <p><strong>Name:</strong> {{ user_details.name }}</p>
+            <p><strong>Phone:</strong> {{ user_details.phone }}</p>
+            <p><strong>Address:</strong> {{ user_details.address }}, {{ user_details.city }}, {{ user_details.place }} - {{ user_details.pincode }}</p>
+        </div>
+    </div>
+
+ <!-- Service Date Picker -->
+ <h4 class="mb-3">Pick a Date for Your Service</h4>
+ <div class="mb-4">
+     <label for="service_date">Select Service Date:</label>
+     <input type="date" id="service_date" name="service_date" class="form-control" 
+            min="{{ cart_items.first.cart_date|date:"Y-m-d" }}" 
+            max="{{ cart_items.first.cart_date|add_days:7 }}">
+ </div>
+
+    <!-- Total price and time section -->
+    <div class="row text-center">
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Price: ₹{{ total_price }}</h3>
+        </div>
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Time: {{ total_time }} Hrs</h3>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Confirm Order button -->
+    <div class="text-center mt-5">
+        <button class="btn btn-lg btn-primary px-5 py-3" id="confirmOrderBtn" onclick="confirmOrder()">Confirm Order</button>
+    </div>
+</div>
+
+<!-- Modal for displaying error message -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                <!-- Error message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- <script>
+function confirmOrder() {
+    fetch(`/create_order/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Order placed successfully!');
+            window.location.href = '/';  // Redirect to the homepage after successful order
+        } else {
+            alert('Failed to place the order.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script> -->
+<script>
+    function confirmOrder() {
+        const serviceDate = document.getElementById('service_date').value;
+    
+        fetch(`/create_order/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ service_date: serviceDate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Order placed successfully!');
+                window.location.href = '/';
+            } else {
+                // If there's an error, show the error message in the modal
+                document.getElementById('errorMessage').innerText = data.message;
+                $('#errorModal').modal('show');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
+
+</body>
+</html>
+
+
+
+{%endblock%}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Vehicle Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        input, select {
+            margin-top: 5px;
+            padding: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2>Add Vehicle Details</h2>
+    <form method="post" action="{% url 'add_vehicle' %}"> 
+        {% csrf_token %}
+        <label for="vehicleType">Vehicle Type:</label>
+        <select id="vehicleType" name="vehicle_type" required>
+            <option value="">Select type</option>
+            <option value="car">Car</option>
+            <option value="bike">Bike</option>
+        </select>
+
+        <label for="vehicleBrand">Vehicle Brand:</label>
+        <select id="vehicleBrand" name="vehicle_brand" required>
+            <option value="">Select brand</option>
+            <option value="toyota">Toyota</option>
+            <option value="honda">Honda</option>
+            <option value="ford">Ford</option>
+            <option value="bmw">BMW</option>
+            <option value="mercedes">Mercedes</option>
+            
+        </select>
+
+        <label for="vehicleVariant">Vehicle Variant:</label>
+        <input type="text" id="vehicle_variant" name="vehicle_variant" required>
+
+        <label for="vehicleNumber">Vehicle Number:</label>
+        <input type="text" id="vehicle_number" name="vehicle_number" required>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html> 
+

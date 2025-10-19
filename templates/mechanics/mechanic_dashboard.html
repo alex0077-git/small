@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanic Dashboard</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            padding-top: 20px;
+            transition: 0.5s;
+        }
+
+        .sidenav a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #fff;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidenav a:hover {
+            background-color: #495057;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .card {
+            transition: transform 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .list-group-item {
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(0,0,0,.125);
+            transition: all 0.2s ease;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .shadow-hover:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15)!important;
+        }
+
+        .orders-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .orders-table td {
+            vertical-align: middle;
+        }
+
+        .vehicle-info {
+            margin: 0;
+        }
+
+        .vehicle-info p {
+            margin-bottom: 0.25rem;
+        }
+
+        .service-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .service-list li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidenav">
+    <a href="{% url 'mechanic_dashboard' %}">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </a>
+    <a href="{% url 'update_order_status' %}">
+        <i class="fas fa-user-cog me-2"></i>Update Order Status
+    </a>
+    <a href="">
+        <i class="fas fa-user-cog me-2"></i>Allocate Mechanic
+    </a>
+    <a href="{%url 'complaint_list'%}">
+        <i class="fas fa-comment-alt"></i> Complaint Box
+    </a>
+    <a href="{% url 'logout' %}">
+        <i class="fas fa-sign-out-alt me-2"></i>Logout
+    </a>
+</div>
+
+<div class="content">
+    <div class="container-fluid py-4">
+        <!-- Welcome Message -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="text-primary mb-0">
+                    <i class="fas fa-user-circle me-2"></i>Welcome, {{ user.email }}
+                </h2>
+            </div>
+        </div>
+
+        <!-- Mechanic Level Specific Section -->
+        {% if user.mechanic.level == 1 %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-star me-2"></i>Senior Mechanic Dashboard</h3>
+            </div>
+            <div class="card-body">
+                <h5 class="text-muted mb-4"><i class="fas fa-tools me-2"></i>Slots assigned to you:</h5>
+                {% if assigned_slots %}
+                    <div class="list-group">
+                        {% for slot in assigned_slots %}
+                        <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-2 text-primary">{{ slot.slotname }}</h5>
+                            </div>
+                            <p class="mb-2 fw-bold text-success">Junior Mechanics Assigned:</p>
+                            <div class="list-group mb-3">
+                                {% for mechanic in slot.allocatedjuniormechanics_set.all %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><i class="fas fa-user-cog me-2"></i>{{ mechanic.junior_mechanic.email }}</span>
+                                        <form method="post" action="{% url 'remove_junior_mechanic' slot.id mechanic.junior_mechanic.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                    onclick="return confirm('Are you sure you want to remove this mechanic?');">
+                                                <i class="fas fa-user-minus me-1"></i>Remove
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <!-- Add Junior Mechanic Form -->
+                            <form method="post" action="{% url 'add_junior_mechanic' slot.id %}" class="bg-light p-3 rounded">
+                                {% csrf_token %}
+                                <div class="form-group mb-3">
+                                    <label for="junior_mechanic" class="form-label">
+                                        <!-- <i class="fas fa-user-plus me-2"></i>Add Junior Mechanic:
+                                    </label>
+                                    <select name="junior_mechanic" class="form-select" required>
+                                        <option value="">Select a Junior Mechanic</option>
+                                        {% for junior in available_junior_mechanics %}
+                                            <option value="{{ junior.id }}">{{ junior.mechanic.email }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle me-2"></i>Add Mechanic
+                                </button> -->
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>No slots have been assigned to you yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0"><i class="fas fa-user-tie me-2"></i>{{ user.mechanic.get_level_display }} Dashboard</h3>
+            </div>
+            <div class="card-body">
+                <!-- Junior mechanic content as before -->
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Orders Table Section -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-white">
+                <h3 class="mb-0"><i class="fas fa-car me-2"></i>Orders for Your Slots</h3>
+            </div>
+            <div class="card-body p-0">
+                {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 orders-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-3">Order ID</th>
+                                    <th class="px-3">Service Date</th>
+                                    <th class="px-3">Vehicle Details</th>
+                                    <th class="px-3">Service Details</th>
+                                    <th class="px-3">Customer Info</th>
+                                    <th class="px-3">Order Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td class="px-3 fw-bold text-primary">{{ order.order_id }}</td>
+                                        <td class="px-3">{{ order.service_date }}</td>
+                                        <td class="px-3">
+                                            <div class="vehicle-info">
+                                                <p class="fw-bold">{{ order.vehicle.registration_number }}</p>
+                                                <p class="text-muted">{{ order.vehicle.vehicle_model.make.name }} {{ order.vehicle.vehicle_model.model_name }}</p>
+                                            </div>
+                                        </td>
+                                        <td class="px-3">
+                                            <ul class="service-list">
+                                                {% for service in order.services.all %}
+                                                    <li>{{ service.service_type.name }} <span class="text-success">(₹{{ service.price }})</span></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </td>
+                                        <td class="px-3">
+                                            <p class="mb-1 fw-bold">{{ order.user.first_name }} {{ order.user.last_name }}</p>
+                                            <p class="mb-0 text-muted">{{ order.user.email }}</p>
+                                        </td>
+                                        <td class="px-3">{{ order.order_date|date:"d M Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info m-3" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>No orders have been allocated to your slots yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

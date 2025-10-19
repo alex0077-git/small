@@ -1,0 +1,85 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .job-card {
+            transition: transform 0.2s ease-in-out;
+            height: 100%;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .card-text {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        
+        .section-header {
+            position: relative;
+            margin-bottom: 3rem;
+            padding-bottom: 1rem;
+        }
+        
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: #007bff;
+        }
+        
+        .btn-primary {
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .container {
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <h2 class="text-center section-header mb-5">Available Jobs</h2>
+        <div class="row g-4">
+            {% for job in jobs %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card job-card">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-3">{{ job.title }}</h5>
+                        <p class="card-text flex-grow-1">{{ job.description }}</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'apply_job' job.id %}" class="btn btn-primary w-100">Apply Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

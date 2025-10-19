@@ -1,0 +1,135 @@
+
+<!-- <div class="container">
+    <h2>Apply for {{ job.title }}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary" >Submit Application</button>
+    </form>
+    
+</div> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .application-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: #007bff;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 1px solid #dee2e6;
+            padding: 0.75rem;
+            border-radius: 5px;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .custom-file-input {
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            padding-top: 4rem;
+            padding-bottom: 4rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="application-form">
+            <h2 class="section-header">Apply for {{ job.title }}</h2>
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="id_candidate_name" class="form-label">Full Name</label>
+                    <input type="text" name="candidate_name" id="id_candidate_name" class="form-control" required>
+                    {% if form.candidate_name.errors %}
+                    <div class="error-message">{{ form.candidate_name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_candidate_email" class="form-label">Email Address</label>
+                    <input type="email" name="candidate_email" id="id_candidate_email" class="form-control" required>
+                    {% if form.candidate_email.errors %}
+                    <div class="error-message">{{ form.candidate_email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_resume" class="form-label">Resume</label>
+                    <input type="file" name="resume" id="id_resume" class="form-control" accept=".pdf,.doc,.docx" required>
+                    {% if form.resume.errors %}
+                    <div class="error-message">{{ form.resume.errors }}</div>
+                    {% endif %}
+                    <div class="form-text text-muted">
+                        Accepted formats: PDF, DOC, DOCX (Max size: 5MB)
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allocate Mechanic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-3 bg-light sidebar">
+            <!-- Sidebar with navigation -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'mechanic_dashboard' %}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'allocate_mechanic' %}">Allocate Mechanic</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-9">
+            <h2 class="my-4">Allocate Mechanic</h2>
+
+            {% if slots %}
+                <div class="accordion" id="accordionExample">
+                    {% for slot in slots %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ slot.id }}">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ slot.id }}" aria-expanded="true" aria-controls="collapse{{ slot.id }}">
+                                    {{ slot.slotname }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ slot.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ slot.id }}" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <h5>Current Junior Mechanics Assigned:</h5>
+                                    <ul class="list-group mb-3">
+                                        {% for mechanic in slot.allocatedjuniormechanics_set.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ mechanic.junior_mechanic.email }}
+                                                <form method="post" action="{% url 'remove_junior_mechanic' slot.id mechanic.junior_mechanic.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                                </form>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <h5>Add Junior Mechanic:</h5>
+                                    <form method="post" action="{% url 'add_junior_mechanic' slot.id %}">
+                                        {% csrf_token %}
+                                        <div class="form-group mb-3">
+                                            <select name="junior_mechanic" class="form-select" required>
+                                                <option value="">Select a Junior Mechanic</option>
+                                                {% for junior in available_junior_mechanics %}
+                                                    <option value="{{ junior.id }}">{{ junior.mechanic.email }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Add Mechanic</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No slots are available to allocate mechanics.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

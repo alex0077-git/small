@@ -1,0 +1,39 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                {% if vehicle_variant.image %}
+                    <img src="{{ vehicle_variant.image.url }}" class="card-img-top" alt="{{ vehicle_variant.model_name }}">
+                {% else %}
+                    <img src="{% static 'placeholder.jpg' %}" class="card-img-top" alt="No Image">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ vehicle_variant.model_name }} ({{ vehicle_variant.year }})</h5>
+                    <p><strong>Brand:</strong> {{ vehicle_variant.make.name }}</p>
+                    <p><strong>Type:</strong> {{ vehicle_variant.get_vehicle_type_display }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h4>Add Vehicle Number</h4>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}  <!-- Display the form fields -->
+                <button type="submit" class="btn btn-primary">Add Vehicle</button>
+            </form>
+
+            {% if error_message %}
+                <div class="alert alert-danger mt-3">
+                    {{ error_message }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{%endblock%}

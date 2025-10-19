@@ -1,0 +1,127 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .order-card {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .order-header {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .vehicle-info img {
+            max-width: 120px;
+        }
+
+        .total-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .order-status {
+            font-weight: bold;
+        }
+
+        .service-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">My Orders</h2>
+
+       <!-- Dropdown to select vehicle -->
+<div class="row mb-4">
+    <div class="col-md-6 offset-md-3">
+        <form method="GET" action="{% url 'my_orders' %}">
+            <div class="input-group">
+                <label class="input-group-text" for="vehicle-select">Filter by Vehicle:</label>
+                <select class="form-select" id="vehicle-select" name="vehicle_id" onchange="this.form.submit()">
+                    <option value="">All Vehicles</option>
+                    {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}" 
+                            {% if vehicle.id|stringformat:"s" == selected_vehicle_id|stringformat:"s" %}selected{% endif %}>
+                            {{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }} - {{ vehicle.registration_number }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+        <div class="row">
+            {% if orders %}
+                {% for order in orders %}
+                <div class="col-md-12">
+                    <div class="order-card">
+                        <div class="order-header">
+                            Order ID: {{ order.order_id }} | Status: <span class="order-status">{{ order.get_status_display }}</span>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4 vehicle-info">
+                                <img src="{{ order.vehicle.vehicle_model.image.url }}" alt="Vehicle Image">
+                                <p><strong>Vehicle:</strong> {{ order.vehicle.vehicle_model.make.name }} {{ order.vehicle.vehicle_model.model_name }}</p>
+                                <p><strong>Registration No:</strong> {{ order.vehicle.registration_number }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>Service Details:</h5>
+                                
+                                    <ul>
+                                        {% for service in order.services.all %}
+                                            <li>{{ service.service_type.name }} - ₹{{ service.price }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                
+                            </div>
+                            <div class="col-md-4">
+                                <p><strong>Service Date:</strong> {{ order.service_date|date:"d M Y" }}</p>
+                                <p><strong>Order Date:</strong> {{ order.order_date|date:"d M Y H:i" }}</p>
+                                <p class="total-amount">Total Amount: ₹{{ order.total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    You have no orders yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+   
+    
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{%endblock%}

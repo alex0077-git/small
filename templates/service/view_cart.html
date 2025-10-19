@@ -1,0 +1,120 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Cart</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Main container for the cart view -->
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Your Cart</h1>
+
+    <!-- Display vehicle image and details -->
+    <div class="card mb-4 shadow-sm">
+        <div class="row g-0">
+            <div class="col-md-3">
+                <!-- Vehicle image with reduced size and rounded corners -->
+                <img src="{{ vehicle.vehicle_model.image.url }}" class="img-fluid rounded-start" alt="Vehicle Image" style="width: 100%; height: auto; object-fit: cover;">
+            </div>
+            <div class="col-md-9">
+                <div class="card-body">
+                    <h4 class="card-title">{{ vehicle.vehicle_model.make.name }} {{ vehicle.vehicle_model.model_name }}</h4>
+                    <p class="card-text"><strong>Registration Number:</strong> {{ vehicle.registration_number }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display selected service types -->
+    <h4 class="mb-3">Selected Services</h4>
+    <ul class="list-group mb-4">
+        {% for item in cart_items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm mb-2">
+            <div class="d-flex align-items-center">
+                <!-- Service image with a consistent size -->
+                <img src="{{ item.service_type.image.url }}" class="img-thumbnail" alt="Service Image" style="width: 80px; height: 80px; object-fit: cover; margin-right: 15px;">
+                <div>
+                    <h5 class="mb-0">{{ item.service_type.name }}</h5>
+                    <p class="mb-0 text-muted">Price: ₹{{ item.service_type.service_prices.first.price }}</p>
+                    <p class="mb-0 text-muted">Time: {{ item.service_type.service_time }} Hrs</p>
+                </div>
+            </div>
+            <!-- Remove button with icon -->
+            <button class="btn btn-danger btn-sm" onclick="removeFromCart('{{ item.id }}')">
+                <i class="fas fa-trash-alt"></i> Remove
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Total price and time section -->
+    <div class="row text-center">
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Price: ₹{{ total_price }}</h3>
+        </div>
+        <div class="col-md-6">
+            <h3 class="font-weight-bold">Total Time: {{ total_time }} Hrs</h3>
+        </div>
+    </div>
+
+    <!-- Buy Now button centered and larger size -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <button class="btn btn-lg btn-success px-5 py-3 shadow-lg" id="buyNowBtn" onclick="buyNow()">Buy Now</button>
+        </div>
+    </div>
+</div>
+
+<!-- Include FontAwesome for icons and Bootstrap JS dependencies -->
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+function removeFromCart(cartItemId) {
+    fetch(`/remove_from_cart/${cartItemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === 'Removed from cart') {
+            document.querySelector(`[data-cart-id="${cartItemId}"]`).remove();
+            const serviceTypeId = data.service_type_id;
+            const addToCartButton = document.querySelector(`[data-service-type-id="${serviceTypeId}"]`);
+            if (addToCartButton) {
+                addToCartButton.innerHTML = '<button class="btn btn-primary" onclick="addToCart(\'' + serviceTypeId + '\')">Add to Cart</button>';
+            }
+            location.reload();  // Reload to update total price and time
+        } else {
+            alert('Failed to remove the item from the cart.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function buyNow() {
+    window.location.href = "/order_confirmation/";  // Redirect to the order confirmation page
+}
+</script>
+
+</body>
+</html>
+
+
+{%endblock%}
+

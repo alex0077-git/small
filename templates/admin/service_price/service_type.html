@@ -1,0 +1,123 @@
+{% extends 'partials/baseadmin.html' %}
+{% load custom_filters %}
+{%block content%}
+{% load static %}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <!-- Display vehicle brand image -->
+            {% if vehicle_variant.make.image %}
+                <img src="{{ vehicle_variant.image.url }}" class="img-fluid" alt="{{ vehicle_variant.make.name }}">
+            {% else %}
+                <img src="{% static 'placeholder.jpg' %}" class="img-fluid" alt="No Image">
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <!-- Display vehicle variant details -->
+            <h3>Brand: {{ vehicle_variant.make.name }}</h3>
+            <h4>Vehicle: {{ vehicle_variant.model_name }} ({{ vehicle_variant.year }})</h4>
+            <!-- Optionally, display vehicle type -->
+            <p>Type: {{ vehicle_variant.get_vehicle_type_display }}</p>
+        </div>
+    </div>
+    <div class="row">
+        {% for service_type in service_types %}
+            <div class="col-md-4">
+                <div class="card">
+                    {% if service_type.image %}
+                        <img src="{{ service_type.image.url }}" class="card-img-top" alt="{{ service_type.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service_type.name }}</h5>
+                        <p class="card-text">{{ service_type.description }}</p>
+    
+                        <!-- Check if price exists for the current service type -->
+                        {% with price_obj=service_prices_dict|get_item:service_type.id %}
+                        {% if price_obj %}
+                            <p>Price: ₹{{ price_obj.price }} INR</p>
+                            <button class="btn btn-secondary" data-toggle="modal" data-target="#editPriceModal{{ service_type.id }}">Edit Price</button>
+                        {% else %}
+                            <p>No Price Set</p>
+                            <button class="btn btn-primary" data-toggle="modal" data-target="#addPriceModal{{ service_type.id }}">Add Price</button>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Modal for Adding Price -->
+            <div class="modal fade" id="addPriceModal{{ service_type.id }}" tabindex="-1" role="dialog" aria-labelledby="addPriceModalLabel{{ service_type.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addPriceModalLabel{{ service_type.id }}">Add Price for {{ service_type.name }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form method="POST" action="{% url 'add_service_price' service_type.id vehicle_variant.id %}">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="price">Price</label>
+                                    <input type="number" name="price" class="form-control" required step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea name="description" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save Price</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Modal for Editing Price -->
+            {% with price_obj=service_prices_dict|get_item:service_type.id %}
+            {% if price_obj %}
+            <div class="modal fade" id="editPriceModal{{ service_type.id }}" tabindex="-1" role="dialog" aria-labelledby="editPriceModalLabel{{ service_type.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editPriceModalLabel{{ service_type.id }}">Edit Price for {{ service_type.name }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form method="POST" action="{% url 'edit_service_price' price_obj.id %}">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="price">Price</label>
+                                    <input type="number" name="price" class="form-control" value="{{ price_obj.price }}" required step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="description">Description</label>
+                                    <textarea name="description" class="form-control" rows="3">{{ price_obj.description }}</textarea>>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Update Price</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+    
+
+                            
+    
+    
+</div>
+
+{%endblock%}

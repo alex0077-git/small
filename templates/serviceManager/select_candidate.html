@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .job-title {
+            position: relative;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .job-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: #28a745;
+        }
+
+        .candidate-card {
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .card-text {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .email-icon {
+            color: #6c757d;
+            margin-right: 0.5rem;
+        }
+
+        .btn-select {
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-select:not(.disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+        }
+
+        .btn-select.disabled {
+            background-color: #198754;
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .selection-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #198754;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .container {
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        /* Custom Confirmation Dialog Styling */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirmation-dialog.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
+
+        .dialog-overlay.show {
+            display: block;
+        }
+
+        .confirmation-dialog h5 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-dialog .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            margin: 0 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Confirmation Dialog -->
+    <div class="dialog-overlay" id="dialogOverlay"></div>
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <h5>Confirm Selection</h5>
+        <p class="mb-3" id="confirmationMessage"></p>
+        <button class="btn btn-success" id="confirmButton">Yes, select</button>
+        <button class="btn btn-secondary" id="cancelButton">Cancel</button>
+    </div>
+
+    <div class="container">
+        <h2 class="job-title">Candidates for {{ job.title }}</h2>
+        <div class="row g-4">
+            {% for application in applications %}
+            <div class="col-md-6">
+                <div class="candidate-card card">
+                    {% if application.is_selected %}
+                    <div class="selection-badge">
+                        <i class="fas fa-check-circle me-1"></i> Selected
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-user me-2 text-primary"></i>
+                            {{ application.candidate_name }}
+                        </h5>
+                        <p class="card-text">
+                            <i class="fas fa-envelope email-icon"></i>
+                            {{ application.candidate_email }}
+                        </p>
+                        <a href="{% url 'select_candidate' application.id %}"
+                           class="btn btn-success btn-select {% if application.is_selected %}disabled{% endif %}"
+                           {% if not application.is_selected %}onclick="return confirmSelection('{{ application.candidate_name }}', this);"{% endif %}>
+                            {% if application.is_selected %}
+                                <i class="fas fa-check me-2"></i>Selected
+                            {% else %}
+                                <i class="fas fa-user-check me-2"></i>Select Candidate
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const dialog = document.getElementById('confirmationDialog');
+        const overlay = document.getElementById('dialogOverlay');
+        const confirmButton = document.getElementById('confirmButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        let currentElement = null;
+
+        function showDialog() {
+            dialog.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        function hideDialog() {
+            dialog.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        function confirmSelection(candidateName, element) {
+            currentElement = element;
+            confirmationMessage.textContent = `Are you sure you want to select ${candidateName}?`;
+            showDialog();
+            return false;
+        }
+
+        confirmButton.addEventListener('click', () => {
+            if (currentElement) {
+                window.location.href = currentElement.href;
+            }
+            hideDialog();
+        });
+
+        cancelButton.addEventListener('click', hideDialog);
+        overlay.addEventListener('click', hideDialog);
+
+        // Close dialog on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideDialog();
+        });
+    </script>
+</body>
+</html>

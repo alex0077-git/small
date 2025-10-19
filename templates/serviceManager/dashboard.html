@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Manager Dashboard</title>
+    
+    <!-- CSS Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    
+    <style>
+        :root {
+            --sidebar-width: 250px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: #2c3e50;
+            padding-top: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu a {
+            padding: 12px 20px;
+            color: #ecf0f1;
+            display: block;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar-menu a:hover {
+            background: #34495e;
+            padding-left: 25px;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Card Styles */
+        .dashboard-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Table Styles */
+        .custom-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .custom-table thead th {
+            background: #2c3e50;
+            color: white;
+            border: none;
+        }
+
+        /* Badge Styles */
+        .custom-badge {
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* Button Styles */
+        .custom-btn {
+            border-radius: 5px;
+            padding: 8px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Modal Styles */
+        .custom-modal .modal-header {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .custom-modal .modal-content {
+            border-radius: 8px;
+            border: none;
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Navbar Styles */
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h4><i class="fas fa-tools"></i> Service Manager</h4>
+    </div>
+    <div class="sidebar-menu">
+        <a href="{% url 'manager_dashboard' %}" class="active">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        
+        <a href="#" data-bs-toggle="modal" data-bs-target="#allocateMechanicModal">
+            <i class="fas fa-user-plus"></i> Allocate Mechanics
+        </a>
+        </a>
+        <a href="{% url 'manager_job_list' %}">
+            <i class="fas fa-user-plus"></i>  Jobs       </a>
+            <a href="{%url 'complaint_list'%}">
+                <i class="fas fa-comment-alt"></i> Complaint Box
+            </a>
+            <a href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <div class="d-flex justify-content-between align-items-center">
+            <button class="btn btn-link d-md-none" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="mb-0">Welcome, {{ user.email }}</h4>
+        </div>
+    </nav>
+
+    <!-- Messages and Assigned Slots Cards -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card dashboard-card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-envelope me-2"></i>Messages</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        <div class="list-group">
+                            {% for message in messages %}
+                                <div class="list-group-item">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted"><i class="fas fa-info-circle me-2"></i>No messages available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card dashboard-card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Assigned Slots</h4>
+                </div>
+                <div class="card-body">
+                    {% if assigned_slots %}
+                        <div class="list-group">
+                            {% for allocation in assigned_slots %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ allocation.slot.slotname }}</strong>
+                                    </div>
+                                    <span class="badge bg-info rounded-pill">
+                                        {{ allocation.slot.get_status_display }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted"><i class="fas fa-info-circle me-2"></i>No slots assigned yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Orders for Assigned Slots</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="ordersTable" class="table table-striped custom-table">
+                    <thead>
+                        <tr>
+                            <th>Slot</th>
+                            <th>Order ID</th>
+                            <th>Service Date</th>
+                            <th>Vehicle</th>
+                            <th>Service Details</th>
+                            <th>Customer</th>
+                            <th>Order Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.allocated_slot.slotname }}</td>
+                            <td>{{ order.order_id }}</td>
+                            <td>{{ order.service_date }}</td>
+                            <td>
+                                {{ order.vehicle.registration_number }}<br>
+                                {{ order.vehicle.vehicle_model.make.name }} - {{ order.vehicle.vehicle_model.model_name }}
+                            </td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for service in order.services.all %}
+                                    <li>{{ service.service_type.name }} - ₹{{ service.price }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ order.user.userdetails.name }}<br>{{ order.user.email }}</td>
+                            <td>{{ order.order_date }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No orders available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Slots Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-tasks me-2"></i>Assigned Slots Management</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="slotsTable" class="table table-striped custom-table">
+                    <thead>
+                        <tr>
+                            <th>Slot Name</th>
+                            <th>Assigned Mechanic</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for allocation in assigned_slots %}
+                        <tr>
+                            <td>{{ allocation.slot.slotname }}</td>
+                            <td>
+                                {% if allocation.slot.mechanic %}
+                                    <span class="text-success">
+                                        <i class="fas fa-user-check me-2"></i>
+                                        {{ allocation.slot.mechanic.email }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-danger">
+                                        <i class="fas fa-user-times me-2"></i>
+                                        No mechanic assigned
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if allocation.slot.mechanic %}
+                                    <button class="btn btn-danger custom-btn remove-button" data-slot-id="{{ allocation.slot.id }}">
+                                        <i class="fas fa-user-minus me-2"></i>Remove
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-primary custom-btn allocate-button" 
+                                            data-slot-slug="{{ allocation.slot.slug }}" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#allocateMechanicModal{{ allocation.slot.slug }}">
+                                        <i class="fas fa-user-plus me-2"></i>Allocate
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No slots assigned</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Allocation Modals -->
+{% for allocation in assigned_slots %}
+<div class="modal fade custom-modal" id="allocateMechanicModal{{ allocation.slot.slug }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Allocate Mechanic - {{ allocation.slot.slotname }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" class="allocate-form" action="{% url 'allocate_mechanic' allocation.slot.slug %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="mechanic" class="form-label">Select Senior Mechanic</label>
+                        <select name="mechanic" class="form-select">
+                            {% for mechanic in mechanics %}
+                            <option value="{{ mechanic.id }}">{{ mechanic.mechanic.email }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success custom-btn w-100">
+                        <i class="fas fa-check-circle me-2"></i>Allocate Mechanic
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- JavaScript Dependencies -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
+
+<script>
+  $(document).ready(function() {
+      // Initialize DataTables
+      $('#ordersTable, #slotsTable').DataTable({
+          responsive: true,
+          pageLength: 10,
+          order: [[0, 'asc']]
+      });
+  
+      // Sidebar Toggle
+      $('#sidebarToggle').click(function() {
+          $('.sidebar').toggleClass('active');
+      });
+  
+      // Remove Mechanic Handler
+      $(".remove-button").on("click", function() {
+          const slotId = $(this).data("slot-id");
+          if (confirm("Are you sure you want to remove this mechanic?")) {
+              $.ajax({
+                  type: "POST",
+                  url: "{% url 'remove_mechanic' %}",
+                  data: {
+                      slot_id: slotId,
+                      csrfmiddlewaretoken: '{{ csrf_token }}'
+                  },
+                  success: function(response) {
+                      // Show success message
+                      const toast = $('<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">')
+                          .html(`
+                              <div class="toast-header bg-success text-white">
+                                  <strong class="me-auto">Success</strong>
+                                  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                              </div>
+                              <div class="toast-body">
+                                  Mechanic removed successfully!
+                              </div>
+                          `);
+                      
+                      $('body').append(toast);
+                      const bsToast = new bootstrap.Toast(toast);
+                      bsToast.show();
+  
+                      // Reload the page after a short delay
+                      setTimeout(() => {
+                          location.reload();
+                      }, 2000);
+                  },
+                  error: function() {
+                      // Show error message
+                      const toast = $('<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">')
+                          .html(`
+                              <div class="toast-header bg-danger text-white">
+                                  <strong class="me-auto">Error</strong>
+                                  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                              </div>
+                              <div class="toast-body">
+                                  There was an error removing the mechanic.
+                              </div>
+                          `);
+                      
+                      $('body').append(toast);
+                      const bsToast = new bootstrap.Toast(toast);
+                      bsToast.show();
+                  }
+              });
+          }
+      });
+  
+      // Allocate Mechanic Form Handler
+      $(".allocate-form").on("submit", function(e) {
+          e.preventDefault();
+          const form = $(this);
+          $.ajax({
+              type: "POST",
+              url: form.attr('action'),
+              data: form.serialize(),
+              success: function(response) {
+                  // Show success message
+                  const toast = $('<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">')
+                      .html(`
+                          <div class="toast-header bg-success text-white">
+                              <strong class="me-auto">Success</strong>
+                              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                          </div>
+                          <div class="toast-body">
+                              Mechanic allocated successfully!
+                          </div>
+                      `);
+                  
+                  $('body').append(toast);
+                  const bsToast = new bootstrap.Toast(toast);
+                  bsToast.show();
+  
+                  // Close the modal
+                  form.closest('.modal').modal('hide');
+  
+                  // Reload the page after a short delay
+                  setTimeout(() => {
+                      location.reload();
+                  }, 2000);
+              },
+              error: function() {
+                  // Show error message
+                  const toast = $('<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">')
+                      .html(`
+                          <div class="toast-header bg-danger text-white">
+                              <strong class="me-auto">Error</strong>
+                              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                          </div>
+                          <div class="toast-body">
+                              There was an error allocating the mechanic.
+                          </div>
+                      `);
+                  
+                  $('body').append(toast);
+                  const bsToast = new bootstrap.Toast(toast);
+                  bsToast.show();
+              }
+          });
+      });
+  });
+  </script>
+  
+  </body>
+  </html>
+
+
+
