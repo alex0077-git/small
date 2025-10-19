@@ -1,0 +1,22 @@
+{% extends 'partials/baseadmin.html' %}
+{% block content %}
+    {% load static %}
+    <hr class="pt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'cst_admin' %}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'slot_list' %}">Slots</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Add Slot</li>
+        </ol>
+    </nav>
+
+    <h2>Add New Slot</h2>
+
+    <div class="vh-100">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Add Slot</button>
+        </form>
+    </div>
+{% endblock %}

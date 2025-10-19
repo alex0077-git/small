@@ -1,0 +1,105 @@
+{% extends 'partials/baseadmin.html' %}
+{%block content%}
+    {% load static %}
+    
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{% url 'addslot' %}" class="btn btn-primary">Add Slot</a>
+        </div>
+
+        <h2 class="mb-4">List of Slots</h2>
+        <table id="slotsTable" class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Slot Name</th>
+                    <th>Allocated Manager</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>{{ slot.slotname }}</td>
+                    <td>
+                        {% if slot.allocatedmanager_set.first %}
+                            {{ slot.allocatedmanager_set.first.manager.email }}
+                            <button class="btn btn-warning" data-toggle="modal" data-target="#reallocateModal{{ slot.slug }}">Reallocate Manager</button>
+                        {% else %}
+                            No manager allocated
+                            <button class="btn btn-primary" data-toggle="modal" data-target="#allocateModal{{ slot.slug }}">Add Manager</button>
+                        {% endif %}
+                    </td>
+                    <td>{{ slot.get_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No slots available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Allocation Modal -->
+    {% for slot in slots %}
+    <div class="modal fade" id="allocateModal{{ slot.slug }}" tabindex="-1" role="dialog" aria-labelledby="allocateModalLabel{{ slot.slug }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="allocateModalLabel{{ slot.slug }}">Allocate Manager for {{ slot.slotname }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'allocate_manager' slot.slug %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-success">Allocate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Reallocation Modal -->
+    {% for slot in slots %}
+    <div class="modal fade" id="reallocateModal{{ slot.slug }}" tabindex="-1" role="dialog" aria-labelledby="reallocateModalLabel{{ slot.slug }}" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reallocateModalLabel{{ slot.slug }}">Reallocate Manager for {{ slot.slotname }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'allocate_manager' slot.slug %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-warning">Reallocate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Include jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#slotsTable').DataTable({
+                "searching": true,
+                "paging": true,
+                "ordering": true
+            });
+        });
+    </script>
+{%endblock%}

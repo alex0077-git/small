@@ -1,0 +1,31 @@
+{% extends 'partials/base.html' %}
+{%block content%}
+{% load static %}
+ 
+
+
+<div class="container mt-5">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for variant in variants %}
+            <div class="col">
+                <div class="card h-100">
+                    <!-- Clicking on the image will lead to the page to add the vehicle number -->
+                    <a href="{% url 'add_vehicle_number' variant.id %}">
+                        {% if variant.image %}
+                            <img src="{{ variant.image.url }}" class="card-img-top" alt="{{ variant.model_name }}">
+                        {% else %}
+                            <img src="{% static 'placeholder.jpg' %}" class="card-img-top" alt="No Image">
+                        {% endif %}
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ variant.model_name }} ({{ variant.year }})</h5>
+                        <p>{{ variant.get_vehicle_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{%endblock%}
+
+

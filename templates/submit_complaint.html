@@ -1,0 +1,89 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Complaint</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        h2 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        textarea {
+            margin-top: 5px;
+            padding: 10px;
+            font-size: 14px;
+            height: 150px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+
+    
+    <div class="container">
+        <h2>Submit Complaint</h2>
+        <form method="post" id="complaintForm">
+            {% csrf_token %}
+            <label for="complaint">Your Complaint</label>
+            <textarea id="complaint" name="complaint" required></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        {% if message %}
+        <p style="color: green; text-align: center;">{{ message }}</p>
+        {% endif %}
+    </div>
+
+
+  
+
+    <script>
+        // Add event listener to the form
+        document.getElementById('complaintForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form submission to allow for popup
+            const complaint = document.getElementById('complaint').value;
+
+            if (complaint.trim()) {
+                // Show a confirmation popup
+                alert("Your complaint has been submitted successfully.");
+                // Submit the form after showing the alert
+                event.target.submit();
+            } else {
+                alert("Please fill in the complaint field.");
+            }
+        });
+    </script>
+
+</body>
+</html>

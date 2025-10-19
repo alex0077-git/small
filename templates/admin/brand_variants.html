@@ -1,0 +1,30 @@
+{% extends 'partials/baseadmin.html' %}
+{%block content%}
+{% load static %}
+ 
+<!-- brand_variants.html -->
+<div class="text-center">
+    <a href="{% url 'add_variant' brand.id %}" class="btn btn-success">Add Variant for {{ brand.name }}</a>
+</div>
+
+<div class="container mt-5">
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for variant in variants %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if variant.image %}
+                        <img src="{{ variant.image.url }}" class="card-img-top" alt="{{ variant.model_name }}">
+                    {% else %}
+                        <img src="{% static 'placeholder.jpg' %}" class="card-img-top" alt="No Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ variant.model_name }} ({{ variant.year }})</h5>
+                        <p>{{ variant.get_vehicle_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{%endblock%}
